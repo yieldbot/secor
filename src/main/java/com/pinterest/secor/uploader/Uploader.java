@@ -50,9 +50,14 @@ public class Uploader {
     private OffsetTracker mOffsetTracker;
     private FileRegistry mFileRegistry;
     private ZookeeperConnector mZookeeperConnector;
+    private String s3TopicDirSuffix = null;
 
     public Uploader(SecorConfig config, OffsetTracker offsetTracker, FileRegistry fileRegistry) {
         this(config, offsetTracker, fileRegistry, new ZookeeperConnector(config));
+        Object suffixDir = mConfig.getS3TopicDirSuffix();
+        if (suffixDir != null) {
+            s3TopicDirSuffix = suffixDir.toString();
+        }
     }
 
     // For testing use only.
@@ -62,11 +67,24 @@ public class Uploader {
         mOffsetTracker = offsetTracker;
         mFileRegistry = fileRegistry;
         mZookeeperConnector = zookeeperConnector;
+
+        Object suffixDir = mConfig.getS3TopicDirSuffix();
+        if (suffixDir != null) {
+            s3TopicDirSuffix = suffixDir.toString();
+        }
     }
 
     private Future<?> upload(LogFilePath localPath) throws Exception {
         String s3Prefix = "s3n://" + mConfig.getS3Bucket() + "/" + mConfig.getS3Path();
-        LogFilePath s3Path = new LogFilePath(s3Prefix, localPath.getTopic(),
+        String topicValue;
+
+        if (s3TopicDirSuffix != null) {
+            topicValue = localPath.getTopic() + s3TopicDirSuffix;
+        } else {
+            topicValue = localPath.getTopic();
+        }
+
+        LogFilePath s3Path = new LogFilePath(s3Prefix, topicValue,
                                              localPath.getPartitions(),
                                              localPath.getGeneration(),
                                              localPath.getKafkaPartition(),
