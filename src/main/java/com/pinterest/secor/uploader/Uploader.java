@@ -26,8 +26,11 @@ import com.pinterest.secor.util.IdUtil;
 import com.pinterest.secor.util.ReflectionUtil;
 
 import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.minidev.json.JSONObject;
 
 import java.io.IOException;
 import java.util.*;
@@ -51,6 +54,8 @@ public class Uploader {
     private FileRegistry mFileRegistry;
     private ZookeeperConnector mZookeeperConnector;
     private String s3TopicDirSuffix = null;
+    private Set<String> archivedHours = new HashSet<String>();
+
 
     public Uploader(SecorConfig config, OffsetTracker offsetTracker, FileRegistry fileRegistry) {
         this(config, offsetTracker, fileRegistry, new ZookeeperConnector(config));
@@ -92,7 +97,19 @@ public class Uploader {
                                              localPath.getExtension());
         final String localLogFilename = localPath.getLogFilePath();
         final String s3LogFilename = s3Path.getLogFilePath();
-        LOG.info("uploading file " + localLogFilename + " to " + s3LogFilename);
+
+        ArrayList<String> elements = new ArrayList<String>();
+        for (String partition : s3Path.getPartitions()) {
+            elements.add(partition);
+        }
+        String hoursTouched = StringUtils.join(elements, "/");
+
+        LOG.info("uploading file, hours_touched=" + hoursTouched);
+        String updateHours = mConfig.getUpdateHoursArchived();
+        if ( updateHours != null && updateHours.equals("true")) {
+            archivedHours.add(hoursTouched);
+            LOG.info("uploading file " + localLogFilename + " to " + s3LogFilename);
+        }
         return executor.submit(new Runnable() {
             @Override
             public void run() {
@@ -238,9 +255,22 @@ public class Uploader {
     }
 
     public void applyPolicy() throws Exception {
+        archivedHours.clear();
         Collection<TopicPartition> topicPartitions = mFileRegistry.getTopicPartitions();
         for (TopicPartition topicPartition : topicPartitions) {
             checkTopicPartition(topicPartition);
         }
+        if (!archivedHours.isEmpty()) {
+            JSONObject jsonObj = new JSONObject();
+            String hoursTouched = StringUtils.join(archivedHours, ", ");
+            jsonObj.put("hours_touched", hoursTouched);
+            jsonObj.put("sts", System.currentTimeMillis());
+            String msg = jsonObj.toString();
+            LOG.info("applyPolicy sending evt " + msg);
+
+            KafkaProducer mKafkaProducer = new KafkaProducer(mConfig);
+            mKafkaProducer.sendMessage(msg);
+        }
+
     }
 }

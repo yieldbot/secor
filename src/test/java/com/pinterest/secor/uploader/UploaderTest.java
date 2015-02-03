@@ -33,9 +33,12 @@ import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Matchers;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.*;
+
 
 /**
  * UploaderTest tests the log file uploader logic.
@@ -49,7 +52,7 @@ public class UploaderTest extends TestCase {
         private FileReader mReader;
 
         public TestUploader(SecorConfig config, OffsetTracker offsetTracker,
-                FileRegistry fileRegistry, ZookeeperConnector zookeeperConnector) {
+                            FileRegistry fileRegistry, ZookeeperConnector zookeeperConnector) {
             super(config, offsetTracker, fileRegistry, zookeeperConnector);
             mReader = Mockito.mock(FileReader.class);
         }
@@ -100,7 +103,7 @@ public class UploaderTest extends TestCase {
 
         mZookeeperConnector = Mockito.mock(ZookeeperConnector.class);
         mUploader = new TestUploader(mConfig, mOffsetTracker, mFileRegistry,
-                mZookeeperConnector);
+                                     mZookeeperConnector);
     }
 
     public void testUploadFiles() throws Exception {
@@ -125,6 +128,13 @@ public class UploaderTest extends TestCase {
         logFilePaths.add(mLogFilePath);
         Mockito.when(mFileRegistry.getPaths(mTopicPartition)).thenReturn(
                 logFilePaths);
+
+
+
+        //        KafkaProducer mKafkaProducer  = Mockito.mock(KafkaProducer.class);
+        // KafkaProducer spy = Mockito.spy(mKafkaProducer);
+        // Mockito.doNothing().when(mKafkaProducer).sendMessage("blah");
+
 
         PowerMockito.mockStatic(FileUtil.class);
 

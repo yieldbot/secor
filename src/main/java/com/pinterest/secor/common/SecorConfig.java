@@ -227,6 +227,11 @@ public class SecorConfig {
     	return getString("secor.kafka.perf_topic_prefix");
     }
 
+    public String getUpdateHoursArchived() {
+        return getString("secor.update.hours.archived");
+    }
+
+
     private void checkProperty(String name) {
         if (!mProperties.containsKey(name)) {
             throw new RuntimeException("Failed to find required configuration option '" +
