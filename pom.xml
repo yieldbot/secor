@@ -48,6 +48,11 @@
     </pluginRepositories>
 
     <distributionManagement>
+      <repository>
+        <id>releases</id>
+        <name>Artifactory-releases</name>
+        <url>https://artifactory.yb0t.cc/artifactory/yieldbot-maven-releases</url>
+      </repository>
       <snapshotRepository>
         <id>snapshots</id>
         <name>Artifactory-snapshots</name>
