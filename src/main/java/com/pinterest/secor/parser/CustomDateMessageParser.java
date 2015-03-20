@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import com.pinterest.secor.common.SecorConfig;
 import com.pinterest.secor.message.Message;
+import com.pinterest.secor.message.ParsedMessage;
+
 
 /**
  * CustomDateMessageParser extracts timestamp field (specified by 'message.timestamp.name')
@@ -68,4 +70,19 @@ public class CustomDateMessageParser extends TimestampedMessageParser {
         return result;
     }
 
+    public ParsedMessage parse(Message message) throws Exception {
+        if (message.getTopic().equals("tagdata")) {
+            JSONObject jsonObject = (JSONObject) JSONValue.parse(message.getPayload());
+            if (jsonObject != null) {
+                Object fieldValue = jsonObject.get("ua");
+                if (fieldValue != null) {
+                    if (fieldValue.toString().equals("yieldbot-internal-crawler/0.0.1")){
+                        LOG.debug("dropping internal crawler event ua=" + fieldValue.toString());
+                        return null;
+                    }
+                }
+            }
+        }
+        return super.parse(message);
+    }
 }
