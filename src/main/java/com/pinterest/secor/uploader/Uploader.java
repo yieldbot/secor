@@ -55,6 +55,7 @@ public class Uploader {
     private ZookeeperConnector mZookeeperConnector;
     private String s3TopicDirSuffix = null;
     private Set<String> archivedHours = new HashSet<String>();
+    private Set<String> archivedTopics = new HashSet<String>();
 
 
     public Uploader(SecorConfig config, OffsetTracker offsetTracker, FileRegistry fileRegistry) {
@@ -84,7 +85,11 @@ public class Uploader {
         String topicValue;
 
         if (s3TopicDirSuffix != null) {
-            topicValue = localPath.getTopic() + s3TopicDirSuffix;
+            if (localPath.getTopic().equals("tagdata")) {
+                topicValue = "pageview" + s3TopicDirSuffix;
+            } else {
+                topicValue = localPath.getTopic() + s3TopicDirSuffix;
+            }
         } else {
             topicValue = localPath.getTopic();
         }
@@ -108,6 +113,7 @@ public class Uploader {
         String updateHours = mConfig.getUpdateHoursArchived();
         if ( updateHours != null && updateHours.equals("true")) {
             archivedHours.add(hoursTouched);
+            archivedTopics.add(topicValue);
             LOG.info("uploading file " + localLogFilename + " to " + s3LogFilename);
         }
         return executor.submit(new Runnable() {
@@ -256,15 +262,21 @@ public class Uploader {
 
     public void applyPolicy() throws Exception {
         archivedHours.clear();
+        archivedTopics.clear();
         Collection<TopicPartition> topicPartitions = mFileRegistry.getTopicPartitions();
         for (TopicPartition topicPartition : topicPartitions) {
             checkTopicPartition(topicPartition);
         }
+        // TODO: 1# archivedtopics should not be a hashset, it should just be a string of the topicname,
+        // since each secor consumer is only going to consume one kafka topic.
+        // 2# archival_events should only contain a single hour, if there are multiple hours that were touched, then
+        // multiple kafka msgs should be sent , containing single hour per kafka msg
         if (!archivedHours.isEmpty()) {
             JSONObject jsonObj = new JSONObject();
             String hoursTouched = StringUtils.join(archivedHours, ", ");
             jsonObj.put("hours_touched", hoursTouched);
             jsonObj.put("sts", System.currentTimeMillis());
+            jsonObj.put("topics",  StringUtils.join(archivedTopics, ", "));
             String msg = jsonObj.toString();
             LOG.info("applyPolicy sending evt " + msg);
 
