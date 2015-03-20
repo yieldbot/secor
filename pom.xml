@@ -47,6 +47,14 @@
         </pluginRepository>
     </pluginRepositories>
 
+    <distributionManagement>
+      <snapshotRepository>
+        <id>snapshots</id>
+        <name>Artifactory-snapshots</name>
+        <url>https://artifactory.yb0t.cc/artifactory/yieldbot-maven-snapshots</url>
+      </snapshotRepository>
+    </distributionManagement>
+
     <dependencies>
         <dependency>
             <groupId>net.java.dev.jets3t</groupId>
