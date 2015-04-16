@@ -70,6 +70,7 @@ public class Consumer extends Thread {
         mMessageParser = ReflectionUtil.createMessageParser(mConfig.getMessageParserClass(), mConfig);
         mUploader = new Uploader(mConfig, mOffsetTracker, fileRegistry);
         mUnparsableMessages = 0.;
+
     }
 
     @Override
@@ -81,6 +82,8 @@ public class Consumer extends Thread {
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize the consumer", e);
         }
+        LOG.info("Starting secor consumer ");
+
         // check upload policy every N seconds or 10,000 messages/consumer timeouts
         long checkEveryNSeconds = Math.min(10 * 60, mConfig.getMaxFileAgeSeconds() / 2);
         long nMessages = 0;
@@ -157,7 +160,7 @@ public class Consumer extends Thread {
 
     /**
      * Helper to get the offset tracker (used in tests)
-     * 
+     *
      * @param topic
      * @param partition
      * @return
@@ -165,5 +168,5 @@ public class Consumer extends Thread {
     public OffsetTracker getOffsetTracker() {
         return this.mOffsetTracker;
     }
-		
+
 }
