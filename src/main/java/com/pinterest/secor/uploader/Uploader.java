@@ -107,7 +107,7 @@ public class Uploader {
         for (String partition : s3Path.getPartitions()) {
             elements.add(partition);
         }
-        String hoursTouched = StringUtils.join(elements, "/");
+        String hoursTouched = StringUtils.join(elements, "");
 
         LOG.info("uploading file, hours_touched=" + hoursTouched);
         String updateHours = mConfig.getUpdateHoursArchived();
