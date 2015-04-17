@@ -17,6 +17,7 @@
 package com.pinterest.secor.parser;
 
 import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 import java.util.Date;
 
 import net.minidev.json.JSONObject;
@@ -66,6 +67,7 @@ public class CustomDateMessageParser extends TimestampedMessageParser {
         long timestampMillis = extractTimestampMillis(message);
         Date date = new Date(timestampMillis);
         SimpleDateFormat outputFormatter = new SimpleDateFormat(defaultFormatter);
+        outputFormatter.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
         String result[] = {outputFormatter.format(date)};
         return result;
     }

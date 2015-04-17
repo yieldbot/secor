@@ -49,7 +49,7 @@ public class CustomDateMessageParserTest extends TestCase {
     public void testExtractPartitions() throws Exception {
         CustomDateMessageParser jsonMessageParser = new CustomDateMessageParser(mConfig);
 
-        String expectedPartition = "2014/07/21/15";
+        String expectedPartition = "2014/07/21/19";
 
         String resultSeconds[] = jsonMessageParser.extractPartitions(mMessageWithMillisFloatTimestamp);
         assertEquals(1, resultSeconds.length);
