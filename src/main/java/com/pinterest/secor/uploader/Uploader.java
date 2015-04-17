@@ -54,7 +54,7 @@ public class Uploader {
     private FileRegistry mFileRegistry;
     private ZookeeperConnector mZookeeperConnector;
     private String s3TopicDirSuffix = null;
-    private Set<String> archivedHours = new HashSet<String>();
+    private Set<String> archivedHours = new TreeSet<String>();
     private Set<String> archivedTopics = new HashSet<String>();
 
 
@@ -107,7 +107,7 @@ public class Uploader {
         for (String partition : s3Path.getPartitions()) {
             elements.add(partition);
         }
-        String hoursTouched = StringUtils.join(elements, "");
+        String hoursTouched = StringUtils.join(elements, "").replaceAll("/", "");
 
         LOG.info("uploading file, hours_touched=" + hoursTouched);
         String updateHours = mConfig.getUpdateHoursArchived();
@@ -272,16 +272,16 @@ public class Uploader {
         // 2# archival_events should only contain a single hour, if there are multiple hours that were touched, then
         // multiple kafka msgs should be sent , containing single hour per kafka msg
         if (!archivedHours.isEmpty()) {
-            JSONObject jsonObj = new JSONObject();
-            String hoursTouched = StringUtils.join(archivedHours, ", ");
-            jsonObj.put("hours_touched", hoursTouched);
-            jsonObj.put("sts", System.currentTimeMillis());
-            jsonObj.put("topics",  StringUtils.join(archivedTopics, ", "));
-            String msg = jsonObj.toString();
-            LOG.info("applyPolicy sending evt " + msg);
-
             KafkaProducer mKafkaProducer = new KafkaProducer(mConfig);
-            mKafkaProducer.sendMessage(msg);
+            for (String hour_entry : archivedHours) {
+                JSONObject jsonObj = new JSONObject();
+                jsonObj.put("hours_touched", hour_entry);
+                jsonObj.put("sts", System.currentTimeMillis());
+                jsonObj.put("topics",  StringUtils.join(archivedTopics, ", "));
+                String msg = jsonObj.toString();
+                LOG.info("applyPolicy sending evt " + msg);
+                mKafkaProducer.sendMessage(msg);
+            }
         }
 
     }
