@@ -138,6 +138,10 @@ public class LogFilePath {
         return StringUtils.join(basenameElements, "_");
     }
 
+    public String getLogBasenameWithExt() {
+        return getLogFileBasename() + mExtension;
+    }
+
     public String getLogFilePath() {
         String basename = getLogFileBasename();
 

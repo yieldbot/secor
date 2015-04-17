@@ -54,7 +54,7 @@ public class Uploader {
     private FileRegistry mFileRegistry;
     private ZookeeperConnector mZookeeperConnector;
     private String s3TopicDirSuffix = null;
-    private Set<String> archivedHours = new TreeSet<String>();
+    private TreeMap<String, JSONObject> archivedHours = new TreeMap<String, JSONObject>();
     private Set<String> archivedTopics = new HashSet<String>();
 
 
@@ -80,7 +80,7 @@ public class Uploader {
         }
     }
 
-    private Future<?> upload(LogFilePath localPath) throws Exception {
+    private Future<?> upload(LogFilePath localPath, TopicPartition topicPartition) throws Exception {
         String s3Prefix = "s3n://" + mConfig.getS3Bucket() + "/" + mConfig.getS3Path();
         String topicValue;
 
@@ -109,12 +109,17 @@ public class Uploader {
         }
         String hoursTouched = StringUtils.join(elements, "").replaceAll("/", "");
 
-        LOG.info("uploading file, hours_touched=" + hoursTouched);
+        LOG.info("uploading file " + localLogFilename + " to " + s3LogFilename);
+        LOG.info("uploading file, hours_touched=" + hoursTouched + " partition=" + topicPartition.getPartition());
         String updateHours = mConfig.getUpdateHoursArchived();
         if ( updateHours != null && updateHours.equals("true")) {
-            archivedHours.add(hoursTouched);
-            archivedTopics.add(topicValue);
-            LOG.info("uploading file " + localLogFilename + " to " + s3LogFilename);
+            JSONObject jsonObj = new JSONObject();
+            jsonObj.put("hours_touched", hoursTouched);
+            jsonObj.put("sts", System.currentTimeMillis());
+            jsonObj.put("topics",  topicValue);
+            jsonObj.put("partition",  topicPartition.getPartition());
+            jsonObj.put("filepath",  localPath.getLogBasenameWithExt());
+            archivedHours.put(hoursTouched, jsonObj);
         }
         return executor.submit(new Runnable() {
             @Override
@@ -146,7 +151,7 @@ public class Uploader {
                 Collection<LogFilePath> paths = mFileRegistry.getPaths(topicPartition);
                 List<Future<?>> uploadFutures = new ArrayList<Future<?>>();
                 for (LogFilePath path : paths) {
-                    uploadFutures.add(upload(path));
+                    uploadFutures.add(upload(path, topicPartition));
                 }
                 for (Future<?> uploadFuture : uploadFutures) {
                     uploadFuture.get();
@@ -269,15 +274,10 @@ public class Uploader {
         }
         // TODO: 1# archivedtopics should not be a hashset, it should just be a string of the topicname,
         // since each secor consumer is only going to consume one kafka topic.
-        // 2# archival_events should only contain a single hour, if there are multiple hours that were touched, then
-        // multiple kafka msgs should be sent , containing single hour per kafka msg
         if (!archivedHours.isEmpty()) {
             KafkaProducer mKafkaProducer = new KafkaProducer(mConfig);
-            for (String hour_entry : archivedHours) {
-                JSONObject jsonObj = new JSONObject();
-                jsonObj.put("hours_touched", hour_entry);
-                jsonObj.put("sts", System.currentTimeMillis());
-                jsonObj.put("topics",  StringUtils.join(archivedTopics, ", "));
+            for (String hour_entry : archivedHours.keySet()) {
+                JSONObject jsonObj = archivedHours.get(hour_entry);
                 String msg = jsonObj.toString();
                 LOG.info("applyPolicy sending evt " + msg);
                 mKafkaProducer.sendMessage(msg);
