@@ -115,7 +115,7 @@ public class Uploader {
         if ( updateHours != null && updateHours.equals("true")) {
             JSONObject jsonObj = new JSONObject();
             jsonObj.put("hours_touched", hoursTouched);
-            jsonObj.put("sts", System.currentTimeMillis());
+            jsonObj.put("sts", System.currentTimeMillis()/1000);
             jsonObj.put("topics",  topicValue);
             jsonObj.put("partition",  topicPartition.getPartition());
             jsonObj.put("filepath",  localPath.getLogBasenameWithExt());
