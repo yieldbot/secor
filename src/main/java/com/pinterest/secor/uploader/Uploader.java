@@ -94,6 +94,15 @@ public class Uploader {
             topicValue = localPath.getTopic();
         }
 
+        String s3BackupPrefix = "s3n://" + mConfig.getS3Bucket() + "/lumpyspace-backup/" + mConfig.getS3Path();
+        LogFilePath s3PathBackup = new LogFilePath(s3BackupPrefix, topicValue,
+                                                   localPath.getPartitions(),
+                                                   localPath.getGeneration(),
+                                                   localPath.getKafkaPartition(),
+                                                   localPath.getOffset(),
+                                                   localPath.getExtension());
+        final String s3BackupLogFilename = s3PathBackup.getLogFilePath();
+
         LogFilePath s3Path = new LogFilePath(s3Prefix, topicValue,
                                              localPath.getPartitions(),
                                              localPath.getGeneration(),
@@ -110,6 +119,8 @@ public class Uploader {
         String hoursTouched = StringUtils.join(elements, "").replaceAll("/", "");
 
         LOG.info("uploading file " + localLogFilename + " to " + s3LogFilename);
+        LOG.info("uploading backup file " + localLogFilename + " to " + s3BackupLogFilename);
+
         LOG.info("uploading file, hours_touched=" + hoursTouched + " partition=" + topicPartition.getPartition());
         String updateHours = mConfig.getUpdateHoursArchived();
         if ( updateHours != null && updateHours.equals("true")) {
@@ -126,6 +137,7 @@ public class Uploader {
             public void run() {
                 try {
                     FileUtil.moveToS3(localLogFilename, s3LogFilename);
+                    FileUtil.copyWithinS3(s3LogFilename, s3BackupLogFilename);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

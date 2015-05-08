@@ -103,6 +103,20 @@ public class FileUtil {
         getFileSystem(dstS3Path).moveFromLocalFile(srcPath, dstPath);
     }
 
+    public static void copyWithinS3(String srcS3Path, String dstS3Path) throws IOException {
+        Path srcPath = new Path(srcS3Path);
+        Path dstPath = new Path(dstS3Path);
+        FileSystem srcFs = getFileSystem(srcS3Path);
+        FileSystem dstFs = getFileSystem(dstS3Path);
+        Configuration conf = new Configuration();
+        if (mConfig != null) {
+            conf.set("fs.s3n.awsAccessKeyId", mConfig.getAwsAccessKey());
+            conf.set("fs.s3n.awsSecretAccessKey", mConfig.getAwsSecretKey());
+        }
+
+        org.apache.hadoop.fs.FileUtil.copy(srcFs, srcPath, dstFs, dstPath, false, true, conf);
+    }
+
     public static void touch(String path) throws IOException {
         FileSystem fs = getFileSystem(path);
         Path fsPath = new Path(path);
