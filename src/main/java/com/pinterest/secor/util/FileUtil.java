@@ -103,6 +103,12 @@ public class FileUtil {
         getFileSystem(dstS3Path).moveFromLocalFile(srcPath, dstPath);
     }
 
+    public static void copyToS3(String srcLocalPath, String dstS3Path) throws IOException {
+        Path srcPath = new Path(srcLocalPath);
+        Path dstPath = new Path(dstS3Path);
+        getFileSystem(dstS3Path).copyFromLocalFile(srcPath, dstPath);
+    }
+
     public static void copyWithinS3(String srcS3Path, String dstS3Path) throws IOException {
         Path srcPath = new Path(srcS3Path);
         Path dstPath = new Path(dstS3Path);

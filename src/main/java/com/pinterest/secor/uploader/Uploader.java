@@ -118,7 +118,7 @@ public class Uploader {
         }
         String hoursTouched = StringUtils.join(elements, "").replaceAll("/", "");
 
-        LOG.info("uploading file " + localLogFilename + " to " + s3LogFilename);
+        LOG.info("uploading perm location file " + localLogFilename + " to " + s3LogFilename);
         LOG.info("uploading backup file " + localLogFilename + " to " + s3BackupLogFilename);
 
         LOG.info("uploading file, hours_touched=" + hoursTouched + " partition=" + topicPartition.getPartition());
@@ -136,8 +136,9 @@ public class Uploader {
             @Override
             public void run() {
                 try {
+                    FileUtil.copyToS3(localLogFilename, s3BackupLogFilename);
                     FileUtil.moveToS3(localLogFilename, s3LogFilename);
-                    FileUtil.copyWithinS3(s3LogFilename, s3BackupLogFilename);
+                    //                    FileUtil.copyWithinS3(s3LogFilename, s3BackupLogFilename);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
