@@ -80,7 +80,7 @@ public class FileRegistry {
      * @param path The path to retrieve writer for.
      * @param codec Optional compression codec.
      * @return Writer for a given path.
-     * @throws Exception 
+     * @throws Exception
      */
     public FileWriter getOrCreateWriter(LogFilePath path, CompressionCodec codec)
             throws Exception {
@@ -102,7 +102,7 @@ public class FileRegistry {
             writer = ReflectionUtil.createFileWriter(mConfig.getFileReaderWriterFactory(), path, codec);
             mWriters.put(path, writer);
             mCreationTimes.put(path, System.currentTimeMillis() / 1000L);
-            LOG.debug("created writer for path " + path.getLogFilePath());
+            LOG.info("created writer for path " + path.getLogFilePath());
         }
         return writer;
     }

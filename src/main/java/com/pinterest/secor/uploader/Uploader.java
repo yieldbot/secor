@@ -258,7 +258,7 @@ public class Uploader {
             if (oldOffsetCount == newOffsetCount) {
                 uploadFiles(topicPartition);
             } else if (newOffsetCount > lastSeenOffset) {  // && oldOffset < newOffset
-                LOG.debug("last seen offset " + lastSeenOffset +
+                LOG.info("last seen offset " + lastSeenOffset +
                           " is lower than committed offset count " + newOffsetCount +
                           ".  Deleting files in topic " + topicPartition.getTopic() +
                           " partition " + topicPartition.getPartition());
@@ -266,7 +266,7 @@ public class Uploader {
                 // current message.  We need to delete the local file.
                 mFileRegistry.deleteTopicPartition(topicPartition);
             } else {  // oldOffsetCount < newOffsetCount <= lastSeenOffset
-                LOG.debug("previous committed offset count " + oldOffsetCount +
+                LOG.info("previous committed offset count " + oldOffsetCount +
                           " is lower than committed offset " + newOffsetCount +
                           " is lower than or equal to last seen offset " + lastSeenOffset +
                           ".  Trimming files in topic " + topicPartition.getTopic() +
