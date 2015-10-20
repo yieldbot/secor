@@ -61,15 +61,15 @@ public class PerfMetricsDateParser extends MessageParser {
                     SimpleDateFormat inputFormatter = new SimpleDateFormat(inputPattern.toString());
                     SimpleDateFormat outputFormatter = new SimpleDateFormat(defaultFormatter);
                     Date dateFormat = inputFormatter.parse(fieldValue.toString());
-                    result[] = {outputFormatter.format(dateFormat)};
+                    result[0] = outputFormatter.format(dateFormat);
                     return result;
-                } catch (Exception e) {
+                    } 
+                catch (Exception e) {
                     LOG.warn("Impossible to convert date = " + fieldValue.toString()
                             + " for the input pattern = " + inputPattern.toString());
                 }
             }
         }
-
-        return result;
+    return result;
     }
 }
