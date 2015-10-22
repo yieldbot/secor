@@ -38,7 +38,7 @@ import com.pinterest.secor.message.ParsedMessage;
  *
  * @see http://docs.oracle.com/javase/6/docs/api/java/text/SimpleDateFormat.html
  *
- * 
+ *
  *
  */
 public class PerfMetricsDateParser extends MessageParser {
@@ -51,25 +51,34 @@ public class PerfMetricsDateParser extends MessageParser {
 
     @Override
     public String[] extractPartitions(Message message) {
+        String defaultResult[] = {"1970/01/01/00"};
         JSONObject jsonObject = (JSONObject) JSONValue.parse(message.getPayload());
-        String result[]={};
         if (jsonObject != null) {
-            Object fieldValue = jsonObject.get(mConfig.getMessageTimestampName());
+            Object fieldValue;
+            Object typeValue = jsonObject.get("type");
+            if (typeValue.toString().contains("-counts")) {
+                fieldValue = jsonObject.get("id");
+            } else {
+                JSONObject sourceValue = (JSONObject) jsonObject.get("source");
+                JSONObject dimensionsValue = (JSONObject) sourceValue.get("dimensions");
+                fieldValue = dimensionsValue.get("date");
+            }
             Object inputPattern = mConfig.getMessageTimestampInputPattern();
             if (fieldValue != null && inputPattern != null) {
                 try {
                     SimpleDateFormat inputFormatter = new SimpleDateFormat(inputPattern.toString());
                     SimpleDateFormat outputFormatter = new SimpleDateFormat(defaultFormatter);
                     Date dateFormat = inputFormatter.parse(fieldValue.toString());
-                    result[0] = outputFormatter.format(dateFormat);
+                    String result[] = {outputFormatter.format(dateFormat)};
                     return result;
-                    } 
+                    }
                 catch (Exception e) {
                     LOG.warn("Impossible to convert date = " + fieldValue.toString()
-                            + " for the input pattern = " + inputPattern.toString());
+                            + " for the input pattern = " + inputPattern.toString()
+                             + "Exception = " + e);
                 }
             }
         }
-    return result;
+        return defaultResult;
     }
 }
