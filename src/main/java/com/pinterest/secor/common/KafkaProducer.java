@@ -44,8 +44,17 @@ public class KafkaProducer {
     }
 
     public void sendMessage(String msg) {
-        Properties properties = new Properties();
-        properties.put("metadata.broker.list", mConfig.getKafkaSeedBrokerHost() + ":" + mConfig.getKafkaSeedBrokerPort());
+        String[] hosts = mConfig.getKafkaSeedBrokerHost();
+        int port = mConfig.getKafkaSeedBrokerPort();
+        StringBuilder brokerList = new StringBuilder();
+        for (String host : hosts) {
+        	if (brokerList.length() > 0) {
+        		brokerList.append(',');
+        	}
+        	brokerList.append(host + ":" + port);
+        }
+    	Properties properties = new Properties();
+        properties.put("metadata.broker.list", brokerList.toString());
         properties.put("serializer.class","kafka.serializer.StringEncoder");
         properties.put("producer.type","sync");
         ProducerConfig producerConfig = new ProducerConfig(properties);

@@ -58,12 +58,11 @@ public class KafkaClient {
 
     private HostAndPort findLeader(TopicPartition topicPartition) {
         SimpleConsumer consumer = null;
+        
         try {
             LOG.info("looking up leader for topic " + topicPartition.getTopic() + " partition " +
                 topicPartition.getPartition());
-            consumer = new SimpleConsumer(mConfig.getKafkaSeedBrokerHost(),
-                    mConfig.getKafkaSeedBrokerPort(),
-                    100000, 64 * 1024, "leaderLookup");
+            consumer = getSimpleConsumer("leaderLookup");
             List<String> topics = new ArrayList<String>();
             topics.add(topicPartition.getTopic());
             TopicMetadataRequest request = new TopicMetadataRequest(topics);
@@ -80,12 +79,35 @@ public class KafkaClient {
         } finally {
             if (consumer != null) {
                 consumer.close();
+                return null;
             }
         }
         return null;
     }
 
-    private static String getClientName(TopicPartition topicPartition) {
+    private SimpleConsumer getSimpleConsumer(String clientId) {
+        String[] brokers = mConfig.getKafkaSeedBrokerHost();
+        int port = mConfig.getKafkaSeedBrokerPort();
+        Exception error = null;
+        for (String broker : brokers) {
+        	try {
+            	SimpleConsumer consumer = new SimpleConsumer(broker, port, 100000, 64 * 1024, clientId);
+            	if (consumer != null) {
+            		return consumer; // success
+            	}
+        	} catch (Exception ex) {
+        		error = ex;
+        		LOG.info("Error communicating with broker : " + broker + " : " + ex.getMessage());
+        	}
+        }
+        // could not create a SimpleConsumer with any of the brokers, log details of last exception
+        if (error != null) {
+        	LOG.error(error.getStackTrace().toString());
+        }
+		return null;
+	}
+
+	private static String getClientName(TopicPartition topicPartition) {
         return "secorClient_" + topicPartition.getTopic() + "_" + topicPartition.getPartition();
     }
 
@@ -148,9 +170,7 @@ public class KafkaClient {
     public int getNumPartitions(String topic) {
         SimpleConsumer consumer = null;
         try {
-            consumer = new SimpleConsumer(mConfig.getKafkaSeedBrokerHost(),
-                    mConfig.getKafkaSeedBrokerPort(),
-                    100000, 64 * 1024, "partitionLookup");
+            consumer = getSimpleConsumer("partitionLookup");
             List<String> topics = new ArrayList<String>();
             topics.add(topic);
             TopicMetadataRequest request = new TopicMetadataRequest(topics);

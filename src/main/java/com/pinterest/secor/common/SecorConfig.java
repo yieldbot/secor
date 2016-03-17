@@ -67,8 +67,8 @@ public class SecorConfig {
         mProperties = properties;
     }
 
-    public String getKafkaSeedBrokerHost() {
-        return getString("kafka.seed.broker.host");
+    public String[] getKafkaSeedBrokerHost() {
+        return getStringArray("kafka.seed.broker.host");
     }
 
     public int getKafkaSeedBrokerPort() {
@@ -232,6 +232,18 @@ public class SecorConfig {
     }
 
 
+    public String[] getCouchbaseHosts() {
+        return getStringArray("couchbase.hosts");
+    }
+
+    public String getCouchbaseDedupBucketname() {
+        return getOptionalString("couchbase.dedup.bucketname");
+    }
+    
+    public int getCouchbaseBatchSize() {
+        return getOptionalInt("couchbase.batchsize");
+    }
+
     private void checkProperty(String name) {
         if (!mProperties.containsKey(name)) {
             throw new RuntimeException("Failed to find required configuration option '" +
@@ -256,4 +268,13 @@ public class SecorConfig {
     private String[] getStringArray(String name) {
         return mProperties.getStringArray(name);
     }
+    
+    private String getOptionalString(String name) {
+        return mProperties.getString(name);
+    }
+
+    private int getOptionalInt(String name) {
+        return mProperties.getInt(name);
+    }
+
 }
