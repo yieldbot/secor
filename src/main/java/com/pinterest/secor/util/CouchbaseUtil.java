@@ -65,14 +65,15 @@ public class CouchbaseUtil {
     	}
 		LOG.info("opening bucket : " + bucketName + " : " + mBucketMap.size());
     	Bucket bucket = null;
-    	int retry = 0;
-    	while (bucket == null && retry < 10) {
+    	while (bucket == null) {
     		try {
             	bucket = mCouchbaseCluster.openBucket(bucketName, 20, TimeUnit.SECONDS);
             	mBucketMap.put(bucketName, bucket);
     		} catch (Exception ex) {
-    			retry++;
-    			LOG.info("retry opening bucket : " + bucketName + " : " + retry + " : " + ex);
+    			LOG.info("retry opening bucket : " + bucketName + " : " + ex + " : " + ex.getMessage());
+                try {
+    				Thread.sleep(5000);
+    			} catch (InterruptedException e) {}
     		}
     	}
     	return bucket;

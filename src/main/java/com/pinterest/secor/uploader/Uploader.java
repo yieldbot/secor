@@ -365,9 +365,7 @@ public class Uploader {
                         dedupPath = new LogFilePath(localPrefix, srcPath.getTopic(),
                         		dedupPartitions, srcPath.getGeneration(),
                                 srcPath.getKafkaPartition(), srcPath.getOffset(),
-                                srcPath.getExtension());
-
-
+                                "_dedup"+srcPath.getExtension());
                     writer = createWriter(dedupPath,codec);
                 }
             	// (filter, batch and) get messages to write, if any, at this time
@@ -379,11 +377,17 @@ public class Uploader {
                 rawCount++;
             }
             // flush any remaining messages
-        	Collection<KeyValue> keysToWrite = dedupFilter.flushMessages();
-        	for (KeyValue kv : keysToWrite) {
-        		writer.write(kv);
-        	}
-        	dedupedCount += keysToWrite.size();
+            int retryCounter = 1;
+            while (!dedupFilter.batch.isEmpty()) {
+            	if (++retryCounter % 50 == 0) {
+            		LOG.error("Unable to flush " + dedupFilter.batch.size() +" messages after " + retryCounter + " trys");
+            	}
+            	Collection<KeyValue> keysToWrite = dedupFilter.flushMessages();
+            	for (KeyValue kv : keysToWrite) {
+            		writer.write(kv);
+            	}
+            	dedupedCount += keysToWrite.size();
+            }
         } finally {
             if (reader != null) {
                 reader.close();
