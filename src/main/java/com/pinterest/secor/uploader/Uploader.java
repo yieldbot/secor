@@ -461,48 +461,52 @@ public class Uploader {
     		List<KeyValue> keyvaluesToWrite = new ArrayList<KeyValue>();
     		Set<String> ids = batch.keySet();
     		
-    		// Filter out ids already in couchbase. Although the next step uses insert, not upsert
-    		// and duplicates would be filtered out, a very large number of duplicates increases chances  
-    		// of potential deadlocks. Pre-filter to minimize duplicates.
-    		Set<String> found = cbHelper.multiGet(ids);
-			for (String foundId : found) {
-				// log number of duplicates and a sample..for any cross-verification...
-				KeyValue kvDuplicate = batch.get(foundId);
-	            JSONObject jsonObject = (JSONObject) JSONValue.parse(kvDuplicate.getValue());
-				LOG.info("Duplicates : " + found.size() + " : ri : " + foundId + ", sts : "+ jsonObject.get("sts"));
-				break;
-			}
-    		ids.removeAll(found);
-    		
-    		// multi-insert (with insert not upsert, this will ensure that even with multiple threads,
-    		// events are processed only once)
-    		List<Set<String>> results = cbHelper.multiInsert(ids); 
-    		Set<String> insertedIds = results.get(0);
-    		Set<String> toRetry = results.get(1);
-    		
-    		// messages corresponding to the newly inserted IDs, should be written to the log
-			for ( Entry<String, KeyValue> entry : batch.entrySet()) {
-				if (insertedIds.contains(entry.getKey())){
-					keyvaluesToWrite.add(entry.getValue());
-				}
+    		try {
+        		// Filter out ids already in couchbase. Although the next step uses insert, not upsert
+        		// and duplicates would be filtered out, a very large number of duplicates increases chances  
+        		// of potential deadlocks. Pre-filter to minimize duplicates.
+        		Set<String> found = cbHelper.multiGet(ids);
+    			for (String foundId : found) {
+    				// log number of duplicates and a sample..for any cross-verification...
+    				KeyValue kvDuplicate = batch.get(foundId);
+    	            JSONObject jsonObject = (JSONObject) JSONValue.parse(kvDuplicate.getValue());
+    				LOG.info("Duplicates : " + found.size() + " : ri : " + foundId + ", sts : "+ jsonObject.get("sts"));
+    				break;
+    			}
+        		ids.removeAll(found);
+        		
+        		// multi-insert (with insert not upsert, this will ensure that even with multiple threads,
+        		// events are processed only once)
+        		List<Set<String>> results = cbHelper.multiInsert(ids); 
+        		Set<String> insertedIds = results.get(0);
+        		Set<String> toRetry = results.get(1);
+        		
+        		// messages corresponding to the newly inserted IDs, should be written to the log
+    			for ( Entry<String, KeyValue> entry : batch.entrySet()) {
+    				if (insertedIds.contains(entry.getKey())){
+    					keyvaluesToWrite.add(entry.getValue());
+    				}
+        		}
+    			
+    			// start a new batch...if there are any to retry, retain those 
+    			if (toRetry.isEmpty()) {
+    				count = 0;
+    	    		batch.clear();
+    			} else {
+    				count = toRetry.size();
+    				HashMap<String, KeyValue> newMap = new HashMap<String, KeyValue>();
+    				for (String retryId : toRetry) {
+    					newMap.put(retryId, batch.get(retryId));
+    				}
+    	    		batch = newMap;
+    			}
+                try {
+    				Thread.sleep(100);
+    			} catch (InterruptedException e) {}
+    		} catch (Exception ex) {
+    			LOG.error("Exception while accessing couchbase : " + ex.getMessage());
+    			LOG.info(ex + " : " + ex.getStackTrace());
     		}
-			
-			// start a new batch...if there are any to retry, retain those 
-			if (toRetry.isEmpty()) {
-				count = 0;
-	    		batch.clear();
-			} else {
-				count = toRetry.size();
-				HashMap<String, KeyValue> newMap = new HashMap<String, KeyValue>();
-				for (String retryId : toRetry) {
-					newMap.put(retryId, batch.get(retryId));
-				}
-	    		batch = newMap;
-			}
-            try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {}
-            
 			// these are new events ... write them!
 			return keyvaluesToWrite;
     	}
@@ -645,9 +649,6 @@ public class Uploader {
 					found.add(doc.id());
 				}
 			}
-//			if (found.size()>0){
-//			LOG.info("dedup multi-get : ids " + ids.size() + ", found "+ found.size());
-//			}
 			return found; 
 		}
     }
