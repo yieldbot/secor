@@ -16,6 +16,7 @@
  */
 package com.pinterest.secor.uploader;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -162,7 +163,7 @@ public class Uploader {
                     FileUtil.copyToS3(localLogFilename, s3BackupLogFilename);
                     FileUtil.moveToS3(localLogFilename, s3LogFilename);
                     //                    FileUtil.copyWithinS3(s3LogFilename, s3BackupLogFilename);
-                } catch (Exception e) {
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -330,12 +331,17 @@ public class Uploader {
 
     }
 
-    private String getLocalFileToUpload(LogFilePath srcPath) throws Exception {
+    private String getLocalFileToUpload(LogFilePath srcPath) {
     	String dedupBucket = mConfig.getCouchbaseDedupBucketname();
-    	if ( (dedupBucket != null) && ( !(dedupBucket.isEmpty())) ) {
-        	return getDedupedFile(srcPath);
+    	if ( (dedupBucket == null) || (dedupBucket.isEmpty()) ) {
+    		return srcPath.getLogFilePath(); //no deduping required, just return original file
     	}
-		return srcPath.getLogFilePath(); //no deduping required, just return original file
+
+    	try {
+        	return getDedupedFile(srcPath);
+    	}catch (Exception ex) {
+    		throw new RuntimeException(ex);
+    	}
     }
 
     private String getDedupedFile(LogFilePath srcPath) throws Exception {
