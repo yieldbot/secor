@@ -57,10 +57,6 @@ public class SecorConfig {
             properties.setProperty("aws.access.key", System.getenv("AWS_ACCESS_KEY_ID"));
             properties.setProperty("aws.secret.key", System.getenv("AWS_SECRET_ACCESS_KEY"));
 
-            for (final Map.Entry<String, String> entry : System.getenv().entrySet()) {
-                LOG.warn("system env : " + entry.getKey().toString());
-            }
-
             return new SecorConfig(properties);
         }
     };
