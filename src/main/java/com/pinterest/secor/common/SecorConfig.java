@@ -20,6 +20,8 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.StringUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Properties;
 
@@ -29,6 +31,7 @@ import java.util.Properties;
  * @author Pawel Garbacki (pawel@pinterest.com)
  */
 public class SecorConfig {
+    private static final Logger LOG = LoggerFactory.getLogger(SecorConfig.class);
     private final PropertiesConfiguration mProperties;
 
     private static final ThreadLocal<SecorConfig> mSecorConfig = new ThreadLocal<SecorConfig>() {
@@ -50,6 +53,7 @@ public class SecorConfig {
 
             for (final Map.Entry<Object, Object> entry : systemProperties.entrySet()) {
                 properties.setProperty(entry.getKey().toString(), entry.getValue());
+                LOG.warn("systemProperties : " + entry.getKey().toString());
                 if (entry.getKey().toString().equalsIgnoreCase("AWS_ACCESS_KEY_ID")) {
                     properties.setProperty("aws.access.key", entry.getValue());
                 }
