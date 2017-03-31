@@ -38,12 +38,14 @@ public class SecorConfig {
             // Load the default configuration file first
             Properties systemProperties = System.getProperties();
             String configProperty = systemProperties.getProperty("config");
+//            String accesskey = systemProperties.getProperty("AWS_ACCESS_KEY_ID");
+//            String secretkey = systemProperties.getProperty("AWS_SECRET_ACCESS_KEY");
 
             PropertiesConfiguration properties;
             try {
                 properties = new PropertiesConfiguration(configProperty);
             } catch (ConfigurationException e) {
-                throw new RuntimeException("Error loading configuration from " + configProperty);
+                throw new RuntimeException(configProperty + " : Error loading configuration : " + e.getMessage());
             }
 
             for (final Map.Entry<Object, Object> entry : systemProperties.entrySet()) {
@@ -176,11 +178,11 @@ public class SecorConfig {
     }
 
     public String getAwsAccessKey() {
-        return getString("aws.access.key");
+        return getString("AWS_ACCESS_KEY_ID");
     }
 
     public String getAwsSecretKey() {
-        return getString("aws.secret.key");
+        return getString("AWS_SECRET_ACCESS_KEY");
     }
 
     public String getQuboleApiToken() {
