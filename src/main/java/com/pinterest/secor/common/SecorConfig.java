@@ -53,13 +53,12 @@ public class SecorConfig {
 
             for (final Map.Entry<Object, Object> entry : systemProperties.entrySet()) {
                 properties.setProperty(entry.getKey().toString(), entry.getValue());
-                LOG.warn("systemProperties : " + entry.getKey().toString());
-                if (entry.getKey().toString().equalsIgnoreCase("AWS_ACCESS_KEY_ID")) {
-                    properties.setProperty("aws.access.key", entry.getValue());
-                }
-                if (entry.getKey().toString().equalsIgnoreCase("AWS_SECRET_ACCESS_KEY")) {
-                    properties.setProperty("aws.secret.key", entry.getValue());
-                }
+            }
+            properties.setProperty("aws.access.key", System.getenv("AWS_ACCESS_KEY_ID"));
+            properties.setProperty("aws.secret.key", System.getenv("AWS_SECRET_ACCESS_KEY"));
+
+            for (final Map.Entry<String, String> entry : System.getenv().entrySet()) {
+                LOG.warn("system env : " + entry.getKey().toString());
             }
 
             return new SecorConfig(properties);
