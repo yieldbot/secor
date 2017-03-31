@@ -50,6 +50,9 @@ public class SecorConfig {
 
             for (final Map.Entry<Object, Object> entry : systemProperties.entrySet()) {
                 properties.setProperty(entry.getKey().toString(), entry.getValue());
+                if (entry.getKey().toString().toLowerCase().startsWith("aws")) {
+                	System.out.println(entry.getKey().toString());
+                }
             }
 
             return new SecorConfig(properties);
@@ -178,11 +181,11 @@ public class SecorConfig {
     }
 
     public String getAwsAccessKey() {
-        return getString("AWS_ACCESS_KEY_ID");
+        return getString("aws.access.key");
     }
 
     public String getAwsSecretKey() {
-        return getString("AWS_SECRET_ACCESS_KEY");
+        return getString("aws.secret.key");
     }
 
     public String getQuboleApiToken() {
