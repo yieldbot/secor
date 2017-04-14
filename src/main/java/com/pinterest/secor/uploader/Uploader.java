@@ -120,7 +120,7 @@ public class Uploader {
             topicValue = localPath.getTopic();
         }
 
-        String s3BackupPrefix = "s3n://" + mConfig.getS3Bucket() + "/lumpyspace-backup_vpc/" + mConfig.getS3Path();
+        String s3BackupPrefix = "s3n://" + mConfig.getS3Bucket() + "/lumpyspace-backup/" + mConfig.getS3Path();
         LogFilePath s3PathBackup = new LogFilePath(s3BackupPrefix, topicValue,
                                                    localPath.getPartitions(),
                                                    localPath.getGeneration(),
