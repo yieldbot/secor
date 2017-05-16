@@ -161,7 +161,7 @@ public class Uploader {
                     LOG.info("uploading perm location file " + localLogFilename + " to " + s3LogFilename);
                     LOG.info("uploading backup file " + localLogFilename + " to " + s3BackupLogFilename);
                     FileUtil.copyToS3(localLogFilename, s3BackupLogFilename);
-                    FileUtil.moveToS3(localLogFilename, "pipem_"+s3LogFilename);
+                    FileUtil.moveToS3(localLogFilename, s3LogFilename);
                     //                    FileUtil.copyWithinS3(s3LogFilename, s3BackupLogFilename);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
