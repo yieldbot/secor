@@ -120,13 +120,13 @@ public class Uploader {
             topicValue = localPath.getTopic();
         }
 
-        String s3BackupPrefix = "s3n://" + mConfig.getS3Bucket() + "/lumpyspace-backup_vpc/" + mConfig.getS3Path();
+        String s3BackupPrefix = "s3n://" + mConfig.getS3Bucket() + "/lumpyspace-backup/" + mConfig.getS3Path();
         LogFilePath s3PathBackup = new LogFilePath(s3BackupPrefix, topicValue,
                                                    localPath.getPartitions(),
                                                    localPath.getGeneration(),
                                                    localPath.getKafkaPartition(),
                                                    localPath.getOffset(),
-                                                   localPath.getExtension());
+                                                   "_pipem"+localPath.getExtension());
         final String s3BackupLogFilename = s3PathBackup.getLogFilePath();
 
         LogFilePath s3Path = new LogFilePath(s3Prefix, topicValue,
@@ -134,7 +134,7 @@ public class Uploader {
                                              localPath.getGeneration(),
                                              localPath.getKafkaPartition(),
                                              localPath.getOffset(),
-                                             localPath.getExtension());
+                                             "_pipem"+localPath.getExtension());
         final String s3LogFilename = s3Path.getLogFilePath();
 
         ArrayList<String> elements = new ArrayList<String>();
