@@ -113,6 +113,8 @@ public class Uploader {
         if (s3TopicDirSuffix != null) {
             if (localPath.getTopic().equals("tagdata")) {
                 topicValue = "pageview" + s3TopicDirSuffix;
+            } else if (localPath.getTopic().equals("aggstats-river")) {
+                topicValue = "es-river-aggstats" + s3TopicDirSuffix;
             } else {
                 topicValue = localPath.getTopic() + s3TopicDirSuffix;
             }
