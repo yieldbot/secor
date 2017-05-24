@@ -128,7 +128,7 @@ public class Uploader {
                                                    localPath.getGeneration(),
                                                    localPath.getKafkaPartition(),
                                                    localPath.getOffset(),
-                                                   "_pipem"+localPath.getExtension());
+                                                   localPath.getExtension());
         final String s3BackupLogFilename = s3PathBackup.getLogFilePath();
 
         LogFilePath s3Path = new LogFilePath(s3Prefix, topicValue,
@@ -136,7 +136,7 @@ public class Uploader {
                                              localPath.getGeneration(),
                                              localPath.getKafkaPartition(),
                                              localPath.getOffset(),
-                                             "_pipem"+localPath.getExtension());
+                                             localPath.getExtension());
         final String s3LogFilename = s3Path.getLogFilePath();
 
         ArrayList<String> elements = new ArrayList<String>();
