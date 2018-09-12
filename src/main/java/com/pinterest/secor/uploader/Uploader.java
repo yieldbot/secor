@@ -543,7 +543,11 @@ public class Uploader {
             if (riValue == null) {
             	LOG.warn("invalid " + topic + " with null ri : " + jsonObject.toString());
             }
-            if ("adimpression".equals(topic) || "adserved".equals(topic) || "swipe".equals(topic) ) {
+            if ("adimpression".equals(topic) ||
+                "dsadimpression".equals(topic) ||
+                "adserved".equals(topic) || 
+                "dsadserved".equals(topic) ||
+                "swipe".equals(topic) ) {
             	return riValue.toString();
             }
             Object stsValue = jsonObject.get("sts");
